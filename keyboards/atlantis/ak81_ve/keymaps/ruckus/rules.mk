@@ -1,0 +1,1 @@
+NKRO_ENABLE = no           # Disable N-Key Rollover
