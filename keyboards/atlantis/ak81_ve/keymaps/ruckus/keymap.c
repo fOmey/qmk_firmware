@@ -16,8 +16,10 @@
 
 #include QMK_KEYBOARD_H
 
-#define CTRL_SHIFT_1 C(S(KC_1))
-#define CTRL_SHIFT_2 C(S(KC_2))
+enum custom_keycodes {
+    KVM1 = SAFE_RANGE,
+    KVM2
+};
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -31,10 +33,42 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 	[1] = LAYOUT(
 		KC_SYSTEM_SLEEP, KC_F13, KC_F14, KC_F15, KC_F16, KC_F17, KC_F18, KC_F19, KC_F20, KC_F21, KC_F22, KC_F23, KC_F24, RGB_TOG, 
-		_______, C(S(KC_1)), C(S(KC_2)), _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, RGB_SPI, 
+		_______, KVM1, KVM2, QK_MAGIC_TOGGLE_NKRO, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, RGB_SPI, 
 		_______, _______, _______, _______, QK_BOOT, _______, _______, _______, _______, _______, KC_PSCR, _______, _______, _______, RGB_VAI, 
 		_______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, RGB_VAD, 
 		_______, _______, _______, KC_CALC, _______, _______, _______, KC_MUTE, _______, _______, _______, _______, RGB_HUI, RGB_SPD, 
 		_______, _______, _______, _______, _______, _______, RGB_SAD, RGB_HUD, RGB_SAI)
 
 };
+
+void kvm_switch_to(uint8_t index) {
+    //bool nkro = keymap_config.nkro;    
+    keymap_config.nkro = false;
+	register_code(KC_LCTL);
+	register_code(KC_LSFT);
+	register_code(index);
+	unregister_code(KC_LCTL);
+	unregister_code(KC_LSFT);
+	unregister_code(index);
+	if (index == KC_1) {
+		keymap_config.nkro = true;
+    	//keymap_config.nkro = nkro;
+	}
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case KVM1:
+            if (record->event.pressed) {
+				kvm_switch_to(KC_1);
+            }
+			return false;
+        case KVM2:
+            if (record->event.pressed) {
+                kvm_switch_to(KC_2);
+            }
+			return false;
+    	default:
+    	    return true;
+	};
+}
